@@ -1,7 +1,7 @@
 # NumpyLoadTxt-Lambda
 The function demonstrates the usage of Numpy.loadtxt function in AWS Lambda
 
-# Setup
+### Setup
 * Download the code and install numpy by running 
 ```bash
 pip install numpy -t <path_to_project_dir>
