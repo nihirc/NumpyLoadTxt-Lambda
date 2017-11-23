@@ -1,0 +1,51 @@
+﻿AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: The function demonstrates the usage of numpy.loadtxt function.
+Resources:
+  NumpyLoadTxt:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: index.lambda_handler
+      Runtime: python2.7
+      CodeUri:
+        Bucket: !Ref CodeBucketName
+        Key: !Ref CodeKey
+      Description: 'Lambda function that is triggered by putting CSV file in S3 bucket'
+      MemorySize: 1024
+      Timeout: 60
+      Policies:
+        - Version: 2012-10-17
+          Statement: 
+            - Effect: Allow
+              Action: s3:*
+              Resource: '*'
+  InvokeFunction:
+    Type: 'AWS::Lambda::Permission'
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      FunctionName: !Ref NumpyLoadTxt
+      Principal: s3.amazonaws.com
+      SourceAccount: !Ref "AWS::AccountId"
+      SourceArn: {
+            "Fn::Join": [":", [
+                "arn","aws","s3","", ""
+                 ,{"Ref" : "InputBucketName"}]]
+        }
+  BucketNotification:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Ref InputBucketName
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: s3:ObjectCreated:*
+            Function: { "Fn::GetAtt" : ["NumpyLoadTxt", "Arn"]}
+Parameters:
+  CodeBucketName:
+    Type: String
+    Description: Bucket name where the lambda function code resides
+  CodeKey:
+    Type: String
+    Description: Key (filename) of the zip file that contains lambda function and dependencies
+  InputBucketName:
+    Type: String
+    Description: Bucket name where the CSV files will be dropped and that will be processed by Lambda function
